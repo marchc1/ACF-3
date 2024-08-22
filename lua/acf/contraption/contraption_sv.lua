@@ -303,7 +303,14 @@ do -- ASSUMING DIRECT CONTROL
 			-- Convenience functions to wrap movement methods easily.
 
 			local function CanMoveEntity(Ent)
-				--if ACF.LegalChecks and IsValid(Ent) and ACF.Check(Ent) and not ACF.IsMovementCallApproved() then return false end
+				if
+					ACF.LegalChecks and						-- Are legality checks enabled?
+					IsValid(Ent) and						-- Validation check for the entity
+					ACF.Check(Ent) and						-- Check if the entity is an ACF entity
+					not ACF.IsMovementCallApproved() and	-- Check if the movement call wasn't approved
+					CurTime() - Ent:GetCreationTime() > 2   -- Give some freedom; mostly for things like Adv. Duplicator
+					then return true						-- Will return false when I start working on this more
+				end
 				return true
 			end
 			local function CanMovePhysObj(Obj)
@@ -311,15 +318,17 @@ do -- ASSUMING DIRECT CONTROL
 			end
 
 			local function WrapPhysobjMovementMethod(name)
-				ObjDetours[name] = OBJ[name]
+				local originalFunc = OBJ[name]
+				ObjDetours[name] = originalFunc
 				OBJ[name] = function(self, ...)
 					if not CanMovePhysObj(self) then return end
 					originalFunc(self, ...)
 				end
 			end
 
-			local function WrapEntityMovementMethod(name, originalFunc)
-				EntDetours[name] = ENT[name]
+			local function WrapEntityMovementMethod(name)
+				local originalFunc = ENT[name]
+				EntDetours[name] = originalFunc
 				ENT[name] = function(self, ...)
 					if not CanMoveEntity(self) then return end
 					originalFunc(self, ...)
@@ -364,7 +373,14 @@ do -- ASSUMING DIRECT CONTROL
 				local Ent = self:GetEntity()
 
 				-- Required due for AD2 support, if this isn't present then entities will never get set to their required weight on dupe paste
-				if Ent.IsACFEntity and not Ent.IsACFBaseplate then Contraption.SetMass(Ent, Ent.ACF.Mass) return end
+				if Ent.IsACFEntity then
+					if Ent.IsACFBaseplate then
+						Ent.ACF.Mass = Mass
+					end
+
+					Contraption.SetMass(Ent, Ent.ACF.Mass)
+					return
+				end
 
 				if Ent.ACF_OnMassChange then
 					Ent:ACF_OnMassChange(self:GetMass(), Mass)

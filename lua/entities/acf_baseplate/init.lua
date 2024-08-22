@@ -132,13 +132,14 @@ do
 
 		Plate.Owner = Player -- MUST be stored on ent for PP
 		Plate.DataStore = Entities.GetArguments("acf_baseplate")
+		do
+			local EntMods = Data.EntityMods
+			if EntMods and EntMods.mass then
+				Plate:GetPhysicsObject():SetMass(EntMods.mass.Mass)
+			end
+		end
 		UpdatePlate(Plate, Data)
 		hook.Run("ACF_OnEntitySpawn", "acf_baseplate", Plate, Data)
-		do
-			-- Mass entity mod removal
-			local EntMods = Data.EntityMods
-			if EntMods and EntMods.mass then EntMods.mass = nil end
-		end
 
 		return Plate
 	end
