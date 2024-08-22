@@ -91,9 +91,11 @@ do
 				if IsValid(e) then e:Remove() end
 			end
 
+			-- Paste the stuff back to the dupe
 			local ents = AdvDupe2.duplicator.Paste(Player, entities, constraints, Vector(0, 0, 0), Angle(0, 0, 0), Vector(0, 0, 0), true)
-			local realBP
+
 			-- Try to find the baseplate
+			local realBP
 			for _, v in pairs(ents) do
 				if v:GetClass() == "acf_baseplate" and v:GetPos() == bp.Pos then
 					realBP = v

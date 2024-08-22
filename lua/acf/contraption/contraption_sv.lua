@@ -256,6 +256,20 @@ do -- ASSUMING DIRECT CONTROL
 		if Trace.Entity.IsACFEntity then return false end
 	end)
 
+	local ACF_MovementCallApproved = false
+
+	-- Approves a movement call (SetPos, ApplyForce, etc...)
+	function ACF.ApproveMovementCall()
+		ACF_MovementCallApproved = true
+	end
+
+	-- Checks if a movement call has been approved. Automatically sets ACF_MovementCallApproved to false before returning.
+	function ACF.IsMovementCallApproved()
+		local ret = ACF_MovementCallApproved
+		ACF_MovementCallApproved = false
+		return ret
+	end
+
 	hook.Add("Initialize", "ACF Meta Detour", function()
 		timer.Simple(1, function()
 			Contraption.Detours = Contraption.Detours or {
@@ -269,21 +283,65 @@ do -- ASSUMING DIRECT CONTROL
 			local EntDetours	= Contraption.Detours.ENT
 			local ObjDetours	= Contraption.Detours.OBJ
 
-			local SetMass		= OBJ.SetMass
-			ObjDetours.SetMass	= SetMass
+			local SetMass		                       = OBJ.SetMass
+			ObjDetours.SetMass	            			= SetMass
 
-			local SetNoDraw					= ENT.SetNoDraw
-			local SetModel					= ENT.SetModel
-			local PhysicsInitSphere			= ENT.PhysicsInitSphere
-			local SetCollisionBounds		= ENT.SetCollisionBounds
-			local SetCollisionGroup			= ENT.SetCollisionGroup
-			local SetNotSolid				= ENT.SetNotSolid
-			EntDetours.SetNoDraw			= SetNoDraw
-			EntDetours.SetModel				= SetModel
-			EntDetours.PhysicsInitSphere	= PhysicsInitSphere
-			EntDetours.SetCollisionBounds	= SetCollisionBounds
-			EntDetours.SetCollisionGroup	= SetCollisionGroup
-			EntDetours.SetNotSolid			= SetNotSolid
+			local SetNoDraw				 	   = ENT.SetNoDraw
+			local SetModel				 	   = ENT.SetModel
+			local PhysicsInitSphere		 	   = ENT.PhysicsInitSphere
+			local SetCollisionBounds	 	   = ENT.SetCollisionBounds
+			local SetCollisionGroup		 	   = ENT.SetCollisionGroup
+			local SetNotSolid			 	   = ENT.SetNotSolid
+
+			EntDetours.SetNoDraw			    = SetNoDraw
+			EntDetours.SetModel				    = SetModel
+			EntDetours.PhysicsInitSphere	    = PhysicsInitSphere
+			EntDetours.SetCollisionBounds	    = SetCollisionBounds
+			EntDetours.SetCollisionGroup	    = SetCollisionGroup
+			EntDetours.SetNotSolid			    = SetNotSolid
+
+			-- Convenience functions to wrap movement methods easily.
+
+			local function CanMoveEntity(Ent)
+				--if ACF.LegalChecks and IsValid(Ent) and ACF.Check(Ent) and not ACF.IsMovementCallApproved() then return false end
+				return true
+			end
+			local function CanMovePhysObj(Obj)
+				return CanMoveEntity(Obj:GetEntity())
+			end
+
+			local function WrapPhysobjMovementMethod(name)
+				ObjDetours[name] = OBJ[name]
+				OBJ[name] = function(self, ...)
+					if not CanMovePhysObj(self) then return end
+					originalFunc(self, ...)
+				end
+			end
+
+			local function WrapEntityMovementMethod(name, originalFunc)
+				EntDetours[name] = ENT[name]
+				ENT[name] = function(self, ...)
+					if not CanMoveEntity(self) then return end
+					originalFunc(self, ...)
+				end
+			end
+
+			WrapPhysobjMovementMethod("SetPos")
+			WrapPhysobjMovementMethod("SetAngles")
+			WrapPhysobjMovementMethod("ApplyForceCenter")
+			WrapPhysobjMovementMethod("ApplyForceOffset")
+			WrapPhysobjMovementMethod("ApplyTorqueCenter")
+			WrapPhysobjMovementMethod("SetAngleVelocity")
+			WrapPhysobjMovementMethod("SetAngleVelocityInstantaneous")
+			WrapPhysobjMovementMethod("SetVelocity")
+			WrapPhysobjMovementMethod("SetVelocityInstantaneous")
+
+			WrapEntityMovementMethod("SetPos")
+			WrapEntityMovementMethod("SetAngles")
+			WrapEntityMovementMethod("SetAbsVelocity")
+			WrapEntityMovementMethod("SetLocalAngularVelocity")
+			WrapEntityMovementMethod("SetLocalVelocity")
+			WrapEntityMovementMethod("SetVelocity")
 
 			-- Convenience functions that will set the Mass/Model variables in the ACF table for the entity
 			function Contraption.SetMass(Entity, Mass)
