@@ -500,6 +500,23 @@ do -- Entity linking
 	end
 end
 
+do -- DropToFloor wrapper for a very specific use case
+	local ShouldNotDrop = {}
+	--- Normally, ACF will spawn entities on the floor. If you don't want the entity to do this for some reason, call this function
+	--- @param Ent Entity The entity that will not be dropped
+	function ACF.DoNotDropEntity(Ent)
+		ShouldNotDrop[Ent] = true
+	end
+
+	--- A wrapper function for Entity:DropToFloor() that respects ACF.DoNotDropEntity(ent) calls.
+	--- @param Ent Entity The entity that will be dropped (if it's allowed to)
+	function ACF.DropToFloor(Ent)
+		if not ShouldNotDrop[Ent] then
+			Ent:DropToFloor()
+		end
+	end
+end
+
 do -- Entity inputs
 	--[[
 		Example structure of inputs:

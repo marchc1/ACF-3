@@ -108,15 +108,13 @@ do
 				undo.SetPlayer(Player)
 			undo.Finish()
 
-			-- This makes me want to blow my head off
-			local _dtf = realBP.DropToFloor
-			timer.Simple(0.0001, function() realBP:SetPos(bp.Pos) end)
+			ACF.DoNotDropEntity(realBP)
 
 			return realBP
 		end
 
-		local Plate = ents.Create("acf_baseplate")
 		VerifyData(Data)
+		local Plate = ents.Create("acf_baseplate")
 
 		if not IsValid(Plate) then return end
 		Plate:SetAngles(PAngle)

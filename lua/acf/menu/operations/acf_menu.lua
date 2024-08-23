@@ -65,7 +65,7 @@ do -- Generic Spawner/Linker operation creator
 		if Success then
 			local PhysObj = Result:GetPhysicsObject()
 
-			Result:DropToFloor()
+			ACF.DropToFloor(Result)
 
 			if IsValid(PhysObj) then
 				PhysObj:EnableMotion(false)
