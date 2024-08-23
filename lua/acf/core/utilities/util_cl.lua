@@ -935,12 +935,4 @@ do -- Default turret menus
 			Menu:AddLabel(MassText:format(Data.Mass))
 		end
 	end
-
-	do	-- Aircraft Propellers
-		function ACF.CreateFlightPropellerMenu(Data, _)
-			ACF.SetClientData("Propeller", Data.ID)
-			ACF.SetClientData("Destiny", "Flight")
-			ACF.SetClientData("PrimaryClass", "acf_flight_propeller")
-		end
-	end
 end
