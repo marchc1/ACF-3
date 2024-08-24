@@ -239,13 +239,13 @@ do -- Generic Spawner/Linker operation creator
 
 			ACF.RegisterToolInfo("acf_menu", "Spawner", Name, {
 				name = "left",
-				text = SpawnText:format(Primary),
+				text = Primary[1] == "!" and string.sub(Primary, 2) or SpawnText:format(Primary),
 			})
 
 			if Secondary then
 				ACF.RegisterToolInfo("acf_menu", "Spawner", Name, {
 					name = "left_secondary",
-					text = "(Hold Shift or R) " .. SpawnText:format(Secondary),
+					text = "(Hold Shift or R) " .. (Secondary[1] == "!" and string.sub(Secondary, 2) or SpawnText:format(Secondary)),
 					icon2 = "gui/info",
 				})
 			end
@@ -320,10 +320,14 @@ do -- Generic Spawner/Linker operation creator
 	end
 end
 
-
 ACF.CreateMenuOperation("Weapon", "weapon", "ammo crate")
 ACF.CreateMenuOperation("Missile", "rack", "ammo crate")
 ACF.CreateMenuOperation("Engine", "engine", "fuel tank")
 ACF.CreateMenuOperation("Component", "component")
 ACF.CreateMenuOperation("Gearbox", "gearbox")
 ACF.CreateMenuOperation("Sensor", "sensor")
+ACF.CreateMenuOperation("1-Turret", "turret")
+ACF.CreateMenuOperation("2-Motor", "turret motor")
+ACF.CreateMenuOperation("3-Gyro", "turret gyroscope")
+ACF.CreateMenuOperation("4-Computer", "turret computer")
+ACF.CreateMenuOperation("Baseplate", "baseplate", "!Convert a physics prop into a baseplate automatically while retaining constraints/parents. Note: you will need to redupe after performing this operation.")

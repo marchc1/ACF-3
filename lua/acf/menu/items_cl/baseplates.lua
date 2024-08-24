@@ -22,7 +22,7 @@ local function LerpColor(a, b, t)
 end
 
 local function CreateMenu(Menu)
-	ACF.SetToolMode("acf_menu", "Spawner", "Component")
+	ACF.SetToolMode("acf_menu", "Spawner", "Baseplate")
 	ACF.SetClientData("PrimaryClass", "acf_baseplate")
 	ACF.SetClientData("SecondaryClass", "N/A")
 
