@@ -51,7 +51,7 @@ local function CreateMenu(Menu)
 
 	end
 
-	SizeX:SetClientData("PlateSizeX", "OnValueChanged")
+	SizeX:SetClientData("Width", "OnValueChanged")
 	SizeX:DefineSetter(function(Panel, _, _, Value)
 		local X = math.Round(Value, 2)
 
@@ -60,7 +60,7 @@ local function CreateMenu(Menu)
 		return X
 	end)
 
-	SizeY:SetClientData("PlateSizeY", "OnValueChanged")
+	SizeY:SetClientData("Length", "OnValueChanged")
 	SizeY:DefineSetter(function(Panel, _, _, Value)
 		local Y = math.Round(Value, 2)
 
@@ -69,7 +69,7 @@ local function CreateMenu(Menu)
 		return Y
 	end)
 
-	SizeZ:SetClientData("PlateSizeZ", "OnValueChanged")
+	SizeZ:SetClientData("Thickness", "OnValueChanged")
 	SizeZ:DefineSetter(function(Panel, _, _, Value)
 		local Z = math.Round(Value, 2)
 

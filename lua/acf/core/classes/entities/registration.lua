@@ -55,16 +55,107 @@ local function AddArguments(Entity, Arguments)
 	return List
 end
 
---- Registers a class as a spawnable entity class
+local TypeVerifiers = {
+	Float = function(Value, Specs)
+		if not isnumber(Value) then Value = ACF.CheckNumber(Value, Specs.Default or 0) end
+
+		Value = math.Round(Value, Specs.Decimals or 3)
+		Value = math.max(Value, Specs.Min)
+		Value = math.min(Value, Specs.Max)
+		return Value
+	end
+}
+
+--- Registers a class as a spawnable entity class. 
+--- When no arguments are provided, and as long as this is being called from a scripted entity init.lua file, the arguments will be auto-filled in.
 --- @param Class string The class to register
 --- @param Function fun(Player:entity, Pos:vector, Ang:angle, Data:table):Entity A function defining how to spawn your class (This should be your MakeACF_<something> function)
 --- @param ... any #A vararg of arguments to attach to the entity
 function Entities.Register(Class, Function, ...)
+	local Arguments
+	if Class == nil and Function == nil then
+		if ENT == nil then ErrorNoHaltWithStack("Entities.Register was passed with no arguments and no active ENT table.") return end
+		if ENT.ACF_Spawn == nil then ErrorNoHaltWithStack("Entities.Register was passed before ENT.ACF_Spawn was defined.") return end
+		-- We autofill from the ENT table
+		Class = string.Replace(ENT.Folder, "entities/")
+
+		local ACF_Spawn = ENT.ACF_Spawn
+		Function = function(Player, Pos, Angle, Data)
+			if not Player:CheckLimit("_" .. Class) then return false end
+
+			local CanSpawn = hook.Run("ACF_PreEntitySpawn", Class, Player, Data)
+			if CanSpawn == false then return false end
+
+			local Ent = ACF_Spawn(Player, Pos, Angle, Data)
+			if not IsValid(Ent) then return end
+			hook.Run("ACF_OnEntitySpawn", Class, Ent, Data)
+
+			return Ent
+		end
+
+		function ENT:ACF_SpawnAndAssignTo(Player)
+			self:SetPlayer(Player)
+			self:Spawn(self)
+			Player:AddCount("_" .. Class, self)
+			Player:AddCleanup("_" .. Class, self)
+
+			self.Owner = Player -- MUST be stored on ent for PP
+			self.DataStore = Entities.GetArguments(Class)
+		end
+
+		if ENT.ACF_DataKeys then
+			local ACF_DataKeys = ENT.ACF_DataKeys
+			Arguments = table.GetKeys(ACF_DataKeys)
+			local update_func = ENT.ACF_Update
+			local verify_func = ENT.ACF_VerifyPlayerData
+
+			-- Define functions
+			function ENT.ACF_VerifyPlayerData(Data)
+				for k, v in pairs(ACF_DataKeys) do
+					local verifier = TypeVerifiers[v.Type]
+					if verifier then
+						Data[k] = verifier(Data[k], v)
+					end
+				end
+
+				if verify_func then verify_func(Data) end
+				hook.Run("ACF_VerifyData", Class, Data, Baseplate)
+			end
+			function ENT:ACF_Update(Data)
+				self.ACF = self.ACF or {}
+
+				-- Storing all the relevant information on the entity for duping
+				for _, V in ipairs(Arguments) do
+					self[V] = Data[V]
+				end
+
+				update_func(self, Data)
+
+				ACF.Activate(self, true)
+			end
+			function ENT:Update(Data)
+				self.ACF_VerifyPlayerData(Data)
+				hook.Run("ACF_OnEntityLast", Class, self)
+
+				ACF.SaveEntity(self)
+				self:ACF_Update(Data)
+				ACF.RestoreEntity(self)
+
+				hook.Run("ACF_OnEntityUpdate", Class, self, Data)
+
+				net.Start("ACF_UpdateEntity")
+				net.WriteEntity(self)
+				net.Broadcast()
+
+				return true, self.PrintName .. " updated successfully!"
+			end
+		end
+	end
 	if not isstring(Class) then return end
 	if not isfunction(Function) then return end
 
 	local Entity    = GetEntityTable(Class)
-	local Arguments = istable(...) and ... or { ... }
+	Arguments       = Arguments or (istable(...) and ... or { ... })
 	local List      = AddArguments(Entity, Arguments)
 
 	Entity.Spawn = Function
@@ -134,7 +225,6 @@ do -- Spawning and updating
 		if HookResult == false then return false, HookMessage end
 
 		local Entity = ClassData.Spawn(Player, Position, Angles, Data)
-
 		if not IsValid(Entity) then return false, "The spawn function for " .. Class .. " didn't return an entity." end
 
 		Entity:Activate()

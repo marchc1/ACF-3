@@ -11,7 +11,6 @@ ENT.OverlayDelay = 1 -- Time in seconds between each overlay update
 function ENT:Enable() end
 function ENT:Disable() end
 function ENT:UpdateOverlayText() end
-
 do -- Entity Overlay ----------------------------
 	local Disable = "Disabled: %s\n%s"
 	local Name    = "ACF Overlay Buffer %s"
