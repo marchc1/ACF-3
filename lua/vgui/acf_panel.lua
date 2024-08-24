@@ -183,6 +183,17 @@ function PANEL:AddComboBox()
 	return Panel
 end
 
+function PANEL:AddCheckBox(label, convar)
+	local Panel = self:AddPanel("DCheckBoxLabel")
+	Panel:SetFont("ACF_Label")
+	Panel:SetText(label)
+	if convar then label:SetConVar(convar) end
+	Panel:SetDark(true)
+	Panel:SetWrap(true)
+
+	return Panel
+end
+
 function PANEL:AddSlider(Title, Min, Max, Decimals)
 	local Panel = self:AddPanel("DNumSlider")
 	Panel:DockMargin(0, 0, 0, 5)

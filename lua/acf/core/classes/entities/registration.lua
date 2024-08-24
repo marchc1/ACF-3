@@ -74,11 +74,13 @@ local TypeVerifiers = {
 function Entities.Register(Class, Function, ...)
 	local Arguments
 	if Class == nil and Function == nil then
+		-- Because this is called in an entity init.lua, ENT should be available
 		if ENT == nil then ErrorNoHaltWithStack("Entities.Register was passed with no arguments and no active ENT table.") return end
 		if ENT.ACF_Spawn == nil then ErrorNoHaltWithStack("Entities.Register was passed before ENT.ACF_Spawn was defined.") return end
 		-- We autofill from the ENT table
 		Class = string.Replace(ENT.Folder, "entities/")
 
+		-- The boilerplate code for spawning entities (hooks, limit checks) get ran; then call ACF_Spawn
 		local ACF_Spawn = ENT.ACF_Spawn
 		Function = function(Player, Pos, Angle, Data)
 			if not Player:CheckLimit("_" .. Class) then return false end
@@ -93,6 +95,7 @@ function Entities.Register(Class, Function, ...)
 			return Ent
 		end
 
+		-- Boilerplate code for spawning and assigning the entity to a player
 		function ENT:ACF_SpawnAndAssignTo(Player)
 			self:SetPlayer(Player)
 			self:Spawn(self)
