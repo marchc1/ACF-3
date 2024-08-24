@@ -94,7 +94,14 @@ function ENT.ACF_Spawn(Player, Pos, PAngle, Data)
 		if EntMods and EntMods.mass then Plate:GetPhysicsObject():SetMass(EntMods.mass.Mass) end
 	end
 	Plate:ACF_Update(Data)
+	ACF.CheckLegal(Plate)
 	return Plate
+end
+
+function ENT:ACF_IsLegal()
+	if IsValid(self:GetParent()) then
+		return false, "Baseplate parented", "An ACF baseplate can not be parented to other entities.", 30
+	end
 end
 
 ENT.ACF_DataKeys = {
