@@ -42,6 +42,12 @@ function ACF.IsLegal(Entity)
 	if Entity.IsACFWeapon and not ACF.GunsCanFire then return false, "Cannot fire", "Firing disabled by the servers ACF settings." end
 	if Entity.IsRack and not ACF.RacksCanFire then return false, "Cannot fire", "Firing disabled by the servers ACF settings." end
 
+	local ENT_ACF_IsLegal = Entity.ACF_IsLegal
+	if ENT_ACF_IsLegal then
+		local Legal, Reason, Message, Timeout = ENT_ACF_IsLegal(Entity)
+		if Legal ~= nil then return Legal, Reason, Message, Timeout end
+	end
+
 	local Legal, Reason, Message, Timeout = hook.Run("ACF_IsLegal", Entity)
 
 	if Legal ~= nil then return Legal, Reason, Message, Timeout end
