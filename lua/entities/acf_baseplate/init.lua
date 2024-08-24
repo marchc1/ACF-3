@@ -20,16 +20,17 @@ end
 local Classes = ACF.Classes
 local Entities = Classes.Entities
 
-function ENT.ACF_VerifyPlayerData(Data)
-	Data.Size = Vector(Data.Length, Data.Width, Data.Thickness)
+function ENT.ACF_VerifyPlayerData(PlayerData)
+	PrintTable(PlayerData)
+	PlayerData.Size = Vector(PlayerData.Length, PlayerData.Width, PlayerData.Thickness)
 end
 
-function ENT:ACF_Update(Data)
-	local Size = Data.Size
+function ENT:ACF_Update(PlayerData)
+	local Size = PlayerData.Size
 	self:SetSize(Size)
 end
 
-function ENT.ACF_Spawn(Player, Pos, PAngle, Data)
+function ENT.ACF_Spawn(Player, Pos, PAngle, PlayerData)
 	if Player:KeyDown(IN_SPEED) and not AdvDupe2.SpawningEntity then
 		local lookEnt = Player:GetEyeTrace().Entity -- What entity are they looking at
 		if not IsValid(lookEnt) then return end
@@ -81,7 +82,7 @@ function ENT.ACF_Spawn(Player, Pos, PAngle, Data)
 	local Plate = ents.Create("acf_baseplate")
 	if not IsValid(Plate) then return end
 
-	Plate.ACF_VerifyPlayerData(Data)
+	Plate.ACF_VerifyPlayerData(PlayerData)
 
 	Plate:SetPos(Pos)
 	Plate:SetAngles(PAngle)
@@ -90,10 +91,10 @@ function ENT.ACF_Spawn(Player, Pos, PAngle, Data)
 
 	Plate:ACF_SpawnAndAssignTo(Player)
 	do
-		local EntMods = Data.EntityMods
+		local EntMods = PlayerData.EntityMods
 		if EntMods and EntMods.mass then Plate:GetPhysicsObject():SetMass(EntMods.mass.Mass) end
 	end
-	Plate:ACF_Update(Data)
+	Plate:ACF_Update(PlayerData)
 	ACF.CheckLegal(Plate)
 	return Plate
 end

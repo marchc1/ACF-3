@@ -302,26 +302,33 @@ do -- ASSUMING DIRECT CONTROL
 
 			-- Convenience functions to wrap movement methods easily.
 
-			local function CanMoveEntity(Ent)
+			local function CanMoveEntity(Ent, called)
 				if
 					ACF.LegalChecks and						-- Are legality checks enabled?
 					IsValid(Ent) and						-- Validation check for the entity
 					ACF.Check(Ent) and						-- Check if the entity is an ACF entity
 					not ACF.IsMovementCallApproved() and	-- Check if the movement call wasn't approved
 					CurTime() - Ent:GetCreationTime() > 2   -- Give some freedom; mostly for things like Adv. Duplicator
-					then return true						-- Will return false when I start working on this more
+				then
+					Entity.Disabled	= {
+						Reason  = "Bad method call",
+						Message = "Tried to call '" .. called .. "' without approval on an ACF entity."
+					}
+					Ent:Disable()
+					ACF.Shame(Entity, "tried to call '" .. called .. "' on an ACF entity.")
+					return false
 				end
 				return true
 			end
-			local function CanMovePhysObj(Obj)
-				return CanMoveEntity(Obj:GetEntity())
+			local function CanMovePhysObj(Obj, called)
+				return CanMoveEntity(Obj:GetEntity(), called)
 			end
 
 			local function WrapPhysobjMovementMethod(name)
 				local originalFunc = OBJ[name]
 				ObjDetours[name] = originalFunc
 				OBJ[name] = function(self, ...)
-					if not CanMovePhysObj(self) then return end
+					if not CanMovePhysObj(self, name) then return end
 					originalFunc(self, ...)
 				end
 			end
@@ -330,7 +337,7 @@ do -- ASSUMING DIRECT CONTROL
 				local originalFunc = ENT[name]
 				EntDetours[name] = originalFunc
 				ENT[name] = function(self, ...)
-					if not CanMoveEntity(self) then return end
+					if not CanMoveEntity(self, name) then return end
 					originalFunc(self, ...)
 				end
 			end
